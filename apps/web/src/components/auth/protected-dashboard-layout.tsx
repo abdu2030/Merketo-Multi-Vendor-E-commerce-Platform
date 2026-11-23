@@ -18,7 +18,6 @@ import {
   Tag,
   Truck,
   UserRound,
-  Users,
   X,
 } from "@/components/imported/design-icons";
 import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notifications";
@@ -35,12 +34,6 @@ const navigation: MainSideMenuNavigationItem[] = [
     label: "Workspace",
     description: "Account overview",
     Icon: LayoutDashboard,
-  },
-  {
-    href: "/dashboard/profile",
-    label: "Profile",
-    description: "Protected account",
-    Icon: Users,
   },
   {
     href: "/dashboard/seller",

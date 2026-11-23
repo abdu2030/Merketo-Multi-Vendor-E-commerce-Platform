@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { FC } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
-import { LogOut } from "@/components/imported/design-icons";
+import { LogOut, UserRound } from "@/components/imported/design-icons";
 import type { AuthUser } from "@/lib/auth";
 
 export type MainSideMenuNavigationItem = {
@@ -94,7 +94,16 @@ export function MainSideMenu({
           })}
         </nav>
 
-        <div className="border-t border-white/10 px-3 py-4">
+        <div className="shrink-0 border-t border-white/10 px-3 py-4">
+          <Link
+            aria-current={pathname === "/dashboard/profile" ? "page" : undefined}
+            className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-bold text-neutral-400 hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:text-white"
+            href="/dashboard/profile"
+            tabIndex={hiddenTabIndex}
+          >
+            <UserRound className="h-4 w-4 shrink-0" />
+            Profile
+          </Link>
           <div className="flex items-center gap-3 rounded-xl px-3.5 py-2.5">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-fuchsia-500 to-amber-300 text-sm font-extrabold text-white">
               {initials(user.fullName)}
