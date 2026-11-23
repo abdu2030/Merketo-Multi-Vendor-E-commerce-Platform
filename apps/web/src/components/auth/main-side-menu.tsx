@@ -95,20 +95,20 @@ export function MainSideMenu({
         </nav>
 
         <div className="shrink-0 border-t border-white/10 px-3 py-4">
-          <Link
-            aria-current={pathname === "/dashboard/profile" ? "page" : undefined}
-            className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-bold text-neutral-400 hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:text-white"
-            href="/dashboard/profile"
-            tabIndex={hiddenTabIndex}
-          >
-            <UserRound className="h-4 w-4 shrink-0" />
-            Profile
-          </Link>
-          <div className="flex items-center gap-3 rounded-xl px-3.5 py-2.5">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-fuchsia-500 to-amber-300 text-sm font-extrabold text-white">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 px-3.5 pb-2.5">
+            <Link
+              aria-current={pathname === "/dashboard/profile" ? "page" : undefined}
+              className="col-start-2 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-neutral-400 hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:text-white"
+              href="/dashboard/profile"
+              tabIndex={hiddenTabIndex}
+            >
+              <UserRound className="h-4 w-4 shrink-0" />
+              Profile
+            </Link>
+            <div className="col-start-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-fuchsia-500 to-amber-300 text-sm font-extrabold text-white">
               {initials(user.fullName)}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <p className="truncate text-xs font-bold text-white">
                 {user.fullName}
               </p>
