@@ -13,7 +13,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
     <button
       aria-label={action}
       title={action}
-      className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full bg-indigo-50 px-3 text-indigo-900 ring-1 ring-inset ring-indigo-200 transition-colors hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-slate-800 dark:text-amber-200 dark:ring-slate-600 dark:hover:bg-slate-700 dark:focus-visible:outline-amber-300"
+      className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full bg-fuchsia-50 px-3 text-fuchsia-800 ring-1 ring-inset ring-fuchsia-200 transition-colors hover:bg-fuchsia-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-800 dark:bg-slate-800 dark:text-fuchsia-300 dark:ring-slate-600 dark:hover:bg-slate-700 dark:focus-visible:outline-fuchsia-300"
       onClick={toggleTheme}
       type="button"
     >
