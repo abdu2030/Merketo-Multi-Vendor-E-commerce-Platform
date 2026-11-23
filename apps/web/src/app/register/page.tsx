@@ -11,7 +11,7 @@ import type { RegisterInput } from "@/lib/auth";
 
 type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
 
-const passwordHint = "Use 12–128 characters with at least one uppercase letter (A–Z), one lowercase letter (a–z), and one number (0–9).";
+const passwordHint = "Use 12–128 characters with an uppercase letter, a lowercase letter, and a number.";
 
 function passwordError(password: string) {
   const length = Array.from(password).length;
@@ -42,6 +42,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const passwordFeedback = fieldErrors.password ?? (password ? passwordError(password) : undefined);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -224,43 +226,46 @@ export default function RegisterPage() {
                 <FieldError field="email" errors={fieldErrors} />
               </label>
 
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-4 sm:grid-cols-2">
-                <label className="grid min-w-0 gap-2">
-                  <span className="text-sm font-bold text-stone-700">
-                    Phone (optional)
-                  </span>
-                  <input
-                    autoComplete="tel"
-                    aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
-                    aria-invalid={Boolean(fieldErrors.phone)}
-                    className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-                    name="phone"
-                    onChange={(event) => setPhone(event.target.value)}
-                    type="tel"
-                    value={phone}
-                  />
-                  <FieldError field="phone" errors={fieldErrors} />
-                </label>
+              <label className="grid min-w-0 gap-2">
+                <span className="text-sm font-bold text-stone-700">
+                  Phone (optional)
+                </span>
+                <input
+                  autoComplete="tel"
+                  aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+                  aria-invalid={Boolean(fieldErrors.phone)}
+                  className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                  name="phone"
+                  onChange={(event) => setPhone(event.target.value)}
+                  type="tel"
+                  value={phone}
+                />
+                <FieldError field="phone" errors={fieldErrors} />
+              </label>
 
-                <label className="grid min-w-0 gap-2">
-                  <span className="text-sm font-bold text-stone-700">
-                    Password
-                  </span>
-                  <input
-                    autoComplete="new-password"
-                    aria-describedby={fieldErrors.password ? "password-error" : "password-hint"}
-                    aria-invalid={Boolean(fieldErrors.password)}
-                    required
-                    className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-                    name="password"
-                    onChange={(event) => setPassword(event.target.value)}
-                    type="password"
-                    value={password}
-                  />
-                  {fieldErrors.password ? <FieldError field="password" errors={fieldErrors} /> : (
-                    <span id="password-hint" className="text-xs leading-relaxed text-stone-600">{passwordHint}</span>
-                  )}
+              <div className="grid min-w-0 gap-2">
+                <label htmlFor="new-password" className="text-sm font-bold text-stone-700">
+                  Password
                 </label>
+                <input
+                  id="new-password"
+                  autoComplete="new-password"
+                  aria-describedby="password-feedback"
+                  aria-invalid={Boolean(passwordFeedback)}
+                  required
+                  className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                  name="password"
+                  onChange={(event) => setPassword(event.target.value)}
+                  type="password"
+                  value={password}
+                />
+                <p
+                  id="password-feedback"
+                  aria-live="polite"
+                  className={passwordFeedback ? "text-sm font-medium text-red-700" : "text-xs leading-relaxed text-stone-600"}
+                >
+                  {passwordFeedback ?? passwordHint}
+                </p>
               </div>
 
               {error ? (
