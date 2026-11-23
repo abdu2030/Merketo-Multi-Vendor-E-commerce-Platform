@@ -5,11 +5,32 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Shield,
-} from "@/components/imported/design-icons";
+import { ArrowRight, BadgeCheck } from "@/components/imported/design-icons";
+import { ApiError } from "@/lib/api";
+import type { RegisterInput } from "@/lib/auth";
+
+type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
+
+const passwordHint = "Use 12–128 characters with at least one uppercase letter (A–Z), one lowercase letter (a–z), and one number (0–9).";
+
+function passwordError(password: string) {
+  const length = Array.from(password).length;
+  if (length < 12) return "Use at least 12 characters for your password.";
+  if (length > 128) return "Shorten your password to 128 characters or fewer.";
+  if (/[\r\n\u2028\u2029]/.test(password)) return "Remove the line breaks from your password.";
+
+  const missing = [];
+  if (!/[A-Z]/.test(password)) missing.push("an uppercase letter (A–Z)");
+  if (!/[a-z]/.test(password)) missing.push("a lowercase letter (a–z)");
+  if (!/[0-9]/.test(password)) missing.push("a number (0–9)");
+  return missing.length ? `Add ${missing.join(" and ")} to your password.` : undefined;
+}
+
+function FieldError({ field, errors }: { field: keyof RegisterInput; errors: FieldErrors }) {
+  return errors[field] ? (
+    <span id={`${field}-error`} className="text-sm font-medium text-red-700">{errors[field]}</span>
+  ) : null;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,43 +40,68 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
+    const input = { fullName: fullName.trim(), email: email.trim(), phone: phone.trim() || undefined, password };
+    const errors: FieldErrors = {};
     setError("");
 
-    if (fullName.trim().length < 2) {
-      setError("Full name must be at least 2 characters.");
+    function showFieldErrors(errors: FieldErrors) {
+      setFieldErrors(errors);
+      const firstInput = form.elements.namedItem(Object.keys(errors)[0]);
+      if (firstInput instanceof HTMLInputElement) firstInput.focus();
+    }
+
+    const nameLength = Array.from(input.fullName).length;
+    if (nameLength < 2 || nameLength > 80) {
+      errors.fullName = "Enter a name between 2 and 80 characters.";
+    }
+    const emailInput = form.elements.namedItem("email") as HTMLInputElement;
+    if (!input.email || emailInput.validity.typeMismatch) {
+      errors.email = "Enter an email address, such as you@example.com.";
+    } else if (Array.from(input.email).length > 254) {
+      errors.email = "Use an email address of 254 characters or fewer.";
+    }
+    if (Array.from(input.phone ?? "").length > 30) {
+      errors.phone = "Use 30 characters or fewer for your phone number.";
+    }
+    const passwordMessage = passwordError(password);
+    if (passwordMessage) errors.password = passwordMessage;
+    if (Object.keys(errors).length) {
+      showFieldErrors(errors);
       return;
     }
 
-    if (!email.trim()) {
-      setError("Email is required.");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
-      await signUp({
-        fullName: fullName.trim(),
-        email: email.trim(),
-        password,
-        phone: phone.trim() || undefined,
-      });
+      await signUp(input);
       router.replace("/dashboard");
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Registration failed.",
-      );
+      if (caughtError instanceof ApiError) {
+        for (const { field, messages } of caughtError.fields) {
+          if (Object.hasOwn(input, field) && messages.length) {
+            errors[field as keyof RegisterInput] = messages.join(" ");
+          }
+        }
+        if (caughtError.status === 409) {
+          errors.email = "Try signing in with this email address, or use a different email to register.";
+        }
+        if (Object.keys(errors).length) {
+          showFieldErrors(errors);
+          return;
+        }
+        if (caughtError.status >= 500) {
+          setError("The marketplace couldn’t finish your signup. Try signing in, or try again in a few minutes.");
+          return;
+        }
+      }
+      setError(caughtError instanceof Error ? caughtError.message : "Couldn’t complete signup. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +179,13 @@ export default function RegisterPage() {
 
             <form
               className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4"
+              noValidate
+              onChange={(event) => {
+                if (!(event.target instanceof HTMLInputElement)) return;
+                const field = event.target.name as keyof RegisterInput;
+                if (fieldErrors[field]) setFieldErrors((current) => ({ ...current, [field]: undefined }));
+                setError("");
+              }}
               onSubmit={handleSubmit}
             >
               <label className="grid min-w-0 gap-2">
@@ -141,6 +194,9 @@ export default function RegisterPage() {
                 </span>
                 <input
                   autoComplete="name"
+                  aria-describedby={fieldErrors.fullName ? "fullName-error" : undefined}
+                  aria-invalid={Boolean(fieldErrors.fullName)}
+                  required
                   className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                   name="fullName"
                   onChange={(event) => setFullName(event.target.value)}
@@ -148,12 +204,16 @@ export default function RegisterPage() {
                   type="text"
                   value={fullName}
                 />
+                <FieldError field="fullName" errors={fieldErrors} />
               </label>
 
               <label className="grid min-w-0 gap-2">
                 <span className="text-sm font-bold text-stone-700">Email</span>
                 <input
                   autoComplete="email"
+                  aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  required
                   className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                   name="email"
                   onChange={(event) => setEmail(event.target.value)}
@@ -161,22 +221,25 @@ export default function RegisterPage() {
                   type="email"
                   value={email}
                 />
+                <FieldError field="email" errors={fieldErrors} />
               </label>
 
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-4 sm:grid-cols-2">
                 <label className="grid min-w-0 gap-2">
                   <span className="text-sm font-bold text-stone-700">
-                    Phone
+                    Phone (optional)
                   </span>
                   <input
                     autoComplete="tel"
+                    aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+                    aria-invalid={Boolean(fieldErrors.phone)}
                     className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                     name="phone"
                     onChange={(event) => setPhone(event.target.value)}
-                    placeholder="Optional"
                     type="tel"
                     value={phone}
                   />
+                  <FieldError field="phone" errors={fieldErrors} />
                 </label>
 
                 <label className="grid min-w-0 gap-2">
@@ -185,18 +248,23 @@ export default function RegisterPage() {
                   </span>
                   <input
                     autoComplete="new-password"
+                    aria-describedby={fieldErrors.password ? "password-error" : "password-hint"}
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    required
                     className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                     name="password"
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="8+ characters"
                     type="password"
                     value={password}
                   />
+                  {fieldErrors.password ? <FieldError field="password" errors={fieldErrors} /> : (
+                    <span id="password-hint" className="text-xs leading-relaxed text-stone-600">{passwordHint}</span>
+                  )}
                 </label>
               </div>
 
               {error ? (
-                <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                   {error}
                 </p>
               ) : null}
@@ -210,11 +278,6 @@ export default function RegisterPage() {
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>
-
-            <div className="mt-6 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-              <Shield className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <p>Your password is hashed by the API before storage.</p>
-            </div>
 
             <p className="mt-8 text-center text-sm text-stone-500">
               Already have an account?{" "}

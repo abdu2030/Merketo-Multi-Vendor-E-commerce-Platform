@@ -9,7 +9,7 @@ export class RegisterDto {
   @MaxLength(80)
   fullName!: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: "Enter a complete email address, such as you@example.com." })
   @MaxLength(254)
   email!: string;
 

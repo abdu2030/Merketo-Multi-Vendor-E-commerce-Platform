@@ -1,8 +1,21 @@
+type FieldErrorDetail = { field: string; messages: string[] };
+
 export type ApiResult<T> = {
   success: boolean;
   data?: T;
   message?: string | string[];
+  errors?: FieldErrorDetail[];
 };
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly fields: FieldErrorDetail[] = []
+  ) {
+    super(message);
+  }
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
@@ -32,7 +45,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     ...options,
     headers
   }).catch(() => {
-    throw new Error("API server is not reachable. Start the backend on http://localhost:5000 and try again.");
+    throw new Error("Couldn’t reach the marketplace. Check your connection and try again.");
   });
   const payload = (await response.json().catch(() => ({}))) as ApiResult<T>;
 
@@ -41,7 +54,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
       ? payload.message.join(" ")
       : payload.message ?? "Something went wrong.";
 
-    throw new Error(message);
+    throw new ApiError(message, response.status, payload.errors);
   }
 
   return payload.data as T;
