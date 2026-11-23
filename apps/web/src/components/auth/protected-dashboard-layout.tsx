@@ -199,6 +199,9 @@ export function ProtectedDashboardLayout({
         id={MAIN_SIDE_MENU_ID}
         isOpen={sideMenuOpen}
         navigation={visibleNavigation}
+        onProfileNavigate={() => {
+          if (!window.matchMedia("(min-width: 1024px)").matches) setSideMenuOpen(false);
+        }}
         onSignOut={() => {
           void signOut().finally(() => router.replace("/login"));
         }}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { FC } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
-import { LogOut, UserRound } from "@/components/imported/design-icons";
+import { LogOut } from "@/components/imported/design-icons";
 import type { AuthUser } from "@/lib/auth";
 
 export type MainSideMenuNavigationItem = {
@@ -21,6 +21,7 @@ type MainSideMenuProps = {
   pathname: string;
   unreadNotifications: number;
   user: AuthUser;
+  onProfileNavigate: () => void;
   onSignOut: () => void;
 };
 
@@ -31,6 +32,7 @@ export function MainSideMenu({
   pathname,
   unreadNotifications,
   user,
+  onProfileNavigate,
   onSignOut,
 }: MainSideMenuProps) {
   const hiddenTabIndex = isOpen ? undefined : -1;
@@ -94,38 +96,37 @@ export function MainSideMenu({
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-white/10 px-3 py-4">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 px-3.5 pb-2.5">
-            <Link
-              aria-current={pathname === "/dashboard/profile" ? "page" : undefined}
-              className="col-start-2 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-neutral-400 hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:text-white"
-              href="/dashboard/profile"
-              tabIndex={hiddenTabIndex}
-            >
-              <UserRound className="h-4 w-4 shrink-0" />
-              Profile
-            </Link>
-            <div className="col-start-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-fuchsia-500 to-amber-300 text-sm font-extrabold text-white">
+        <div className="flex shrink-0 items-center gap-1 border-t border-white/10 px-3 py-4">
+          <Link
+            aria-current={pathname === "/dashboard/profile" ? "page" : undefined}
+            aria-label={`View profile for ${user.fullName}`}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-300 aria-[current=page]:bg-white/10"
+            href="/dashboard/profile"
+            onNavigate={onProfileNavigate}
+            tabIndex={hiddenTabIndex}
+            title="View profile"
+          >
+            <div aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-fuchsia-500 to-amber-300 text-sm font-extrabold text-white">
               {initials(user.fullName)}
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-bold text-white">
                 {user.fullName}
               </p>
-              <p className="truncate text-[10px] font-semibold text-stone-500">
+              <p className="truncate text-[10px] font-semibold text-stone-400">
                 {user.email}
               </p>
             </div>
-            <button
-              aria-label="Sign out"
-              className="rounded-lg p-2 text-stone-500 transition-colors hover:bg-white/5 hover:text-white"
-              onClick={onSignOut}
-              tabIndex={hiddenTabIndex}
-              type="button"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
+          </Link>
+          <button
+            aria-label="Sign out"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-white/5 hover:text-white"
+            onClick={onSignOut}
+            tabIndex={hiddenTabIndex}
+            type="button"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </aside>
