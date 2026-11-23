@@ -12,12 +12,12 @@ import {
   Menu,
   CreditCard,
   Package,
-  Settings,
   Shield,
   ShoppingBag,
   ShoppingCart,
   Tag,
   Truck,
+  UserRound,
   Users,
   X,
 } from "@/components/imported/design-icons";
@@ -253,28 +253,28 @@ export function ProtectedDashboardLayout({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="hidden rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-bold text-stone-500 sm:inline-flex">
-              {user.email}
-            </span>
             {canSeeNotifications ? (
               <Link
                 aria-label={`${unreadNotifications} unread notifications`}
-                className="relative rounded-xl p-2 transition-colors hover:bg-stone-100"
+                title="Notifications"
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-stone-800 transition-colors hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 href="/dashboard/notifications"
               >
-                <Bell className="h-5 w-5 text-stone-600" />
+                <Bell className="h-5 w-5" />
                 {unreadNotifications > 0 ? (
                   <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-cyan-400 ring-2 ring-white" />
                 ) : null}
               </Link>
             ) : null}
-            <ThemeToggle compact />
+            <ThemeToggle />
             <Link
-              aria-label="Store settings"
-              className="rounded-xl p-2 transition-colors hover:bg-stone-100"
+              aria-label={`View profile for ${user.email}`}
+              title="View profile"
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 text-stone-800 transition-colors hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               href="/dashboard/profile"
             >
-              <Settings className="h-5 w-5 text-stone-600" />
+              <UserRound className="h-5 w-5 shrink-0" />
+              <span className="hidden max-w-48 truncate text-xs font-bold sm:inline">{user.email}</span>
             </Link>
           </div>
         </header>

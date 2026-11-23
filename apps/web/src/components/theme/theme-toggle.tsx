@@ -1,23 +1,24 @@
 "use client";
 
+import { Moon, Sun } from "@/components/imported/design-icons";
 import { useTheme } from "./theme-provider";
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+  const mode = isDark ? "Light mode" : "Dark mode";
+  const action = `Switch to ${mode.toLowerCase()}`;
 
   return (
     <button
-      aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
-      className="inline-flex h-10 items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 text-xs font-extrabold text-stone-600 transition hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950 dark:border-white/10 dark:bg-white/5 dark:text-stone-300 dark:hover:bg-white/10 dark:hover:text-white"
+      aria-label={action}
+      title={action}
+      className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full bg-indigo-50 px-3 text-indigo-900 ring-1 ring-inset ring-indigo-200 transition-colors hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-slate-800 dark:text-amber-200 dark:ring-slate-600 dark:hover:bg-slate-700 dark:focus-visible:outline-amber-300"
       onClick={toggleTheme}
       type="button"
     >
-      <span className="relative inline-flex h-4 w-4 items-center justify-center">
-        <span className={`absolute h-3.5 w-3.5 rounded-full transition ${isDark ? "scale-100 bg-amber-300" : "scale-75 bg-stone-900"}`} />
-        <span className={`absolute h-3.5 w-3.5 rounded-full bg-white transition dark:bg-stone-900 ${isDark ? "translate-x-1 -translate-y-1 scale-90" : "translate-x-3 scale-0"}`} />
-      </span>
-      {compact ? null : <span>{isDark ? "Light" : "Dark"}</span>}
+      {isDark ? <Sun /> : <Moon />}
+      {!compact && <span className="hidden text-sm font-bold sm:inline">{mode}</span>}
     </button>
   );
 }

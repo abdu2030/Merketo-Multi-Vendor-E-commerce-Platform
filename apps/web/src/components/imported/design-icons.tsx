@@ -164,6 +164,32 @@ export function LayoutDashboard(props: IconProps) {
   );
 }
 
+export function UserRound(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+    </IconBase>
+  );
+}
+
+export function Moon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M20.9 13.1A9 9 0 0 1 10.9 3.1a9 9 0 1 0 10 10Z" />
+    </IconBase>
+  );
+}
+
+export function Sun(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </IconBase>
+  );
+}
+
 export function Users(props: IconProps) {
   return (
     <IconBase {...props}>
