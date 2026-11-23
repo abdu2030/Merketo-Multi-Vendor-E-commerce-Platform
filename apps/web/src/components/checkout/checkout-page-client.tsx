@@ -344,7 +344,7 @@ export function CheckoutPageClient() {
           ) : null}
 
           <button
-            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500"
+            className="checkout-action"
             disabled={!canCheckout || isRedirecting}
             onClick={() => void handleCheckout()}
             type="button"

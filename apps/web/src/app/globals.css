@@ -4,6 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .checkout-action {
+    @apply mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-extrabold transition-colors;
+    @apply bg-fuchsia-800 text-white enabled:hover:bg-fuchsia-900 dark:bg-fuchsia-300 dark:text-slate-950 dark:enabled:hover:bg-fuchsia-200;
+    @apply disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-700 dark:disabled:bg-slate-700 dark:disabled:text-slate-200;
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-800 dark:focus-visible:outline-fuchsia-300;
+  }
+}
+
 :root {
   --bg: #f5f7fb;
   --surface: #ffffff;

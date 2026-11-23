@@ -110,21 +110,21 @@ function WorkspaceActionCard({
   href: string;
   tone: "cyan" | "rose" | "amber";
 }) {
-  const toneClass = tone === "cyan" ? "bg-cyan-100 text-cyan-700" : tone === "rose" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700";
+  const toneClass = tone === "cyan" ? "bg-cyan-100 text-cyan-800" : tone === "rose" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-900";
 
   return (
-    <Link className="group rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl" href={href}>
+    <Link className="group rounded-[1.75rem] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-800 dark:focus-visible:outline-fuchsia-300" href={href}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">{label}</p>
-          <h3 className="mt-2 text-xl font-black text-slate-950">{title}</h3>
+          <p className="text-xs font-black uppercase tracking-widest text-[var(--muted)]">{label}</p>
+          <h3 className="mt-2 text-xl font-black text-[var(--text)]">{title}</h3>
         </div>
         <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${toneClass}`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
-      <p className="mt-4 text-sm font-semibold leading-relaxed text-slate-500">{body}</p>
-      <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-slate-500 transition group-hover:text-slate-950">
+      <p className="mt-4 text-sm font-semibold leading-relaxed text-[var(--muted-strong)]">{body}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-fuchsia-800 underline-offset-4 group-hover:underline group-focus-visible:underline dark:text-fuchsia-300">
         Open
         <ArrowRight className="h-4 w-4" />
       </span>
