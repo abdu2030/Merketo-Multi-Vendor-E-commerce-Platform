@@ -36,6 +36,16 @@ export function MainSideMenu({
   onSignOut,
 }: MainSideMenuProps) {
   const hiddenTabIndex = isOpen ? undefined : -1;
+  let activeHref = "";
+  for (const { href } of navigation) {
+    if (pathname === href) {
+      activeHref = href;
+      break;
+    }
+    if (href !== "/dashboard" && pathname.startsWith(`${href}/`) && href.length > activeHref.length) {
+      activeHref = href;
+    }
+  }
 
   return (
     <aside
@@ -60,10 +70,7 @@ export function MainSideMenu({
           className="dashboard-sidebar-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4"
         >
           {navigation.map(({ href, label, description, Icon }) => {
-            const active =
-              href === "/dashboard"
-                ? pathname === href
-                : pathname === href || pathname.startsWith(`${href}/`);
+            const active = href === activeHref;
 
             return (
               <Link
