@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand/brand-logo";
+import { MarketplaceHeader } from "@/components/marketplace/marketplace-header";
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle, ShoppingBag } from "@/components/imported/design-icons";
 
@@ -15,16 +15,7 @@ export function CheckoutSuccessClient() {
 
   return (
     <main className="min-h-screen bg-stone-50 text-stone-900">
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link className="flex items-center gap-2.5" href="/">
-            <BrandLogo />
-          </Link>
-          <Link className="rounded-xl bg-stone-950 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-stone-700" href="/products">
-            Products
-          </Link>
-        </div>
-      </header>
+      <MarketplaceHeader active="checkout" />
 
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-3xl place-items-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-sm sm:p-10">
@@ -47,7 +38,7 @@ export function CheckoutSuccessClient() {
               <ShoppingBag className="h-4 w-4" />
             </Link>
             <Link className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-5 text-sm font-extrabold text-stone-800 transition hover:border-stone-300" href="/dashboard">
-              Account
+              Workspace
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

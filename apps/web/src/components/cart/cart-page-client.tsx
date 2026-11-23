@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand/brand-logo";
+import { MarketplaceHeader } from "@/components/marketplace/marketplace-header";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -245,18 +245,7 @@ export function CartPageClient() {
 function CartShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-stone-50 text-stone-900">
-      <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link className="flex items-center gap-2.5" href="/">
-            <BrandLogo />
-          </Link>
-          <nav className="flex items-center gap-4 text-sm font-bold">
-            <Link className="text-stone-500 transition hover:text-stone-950" href="/products">Products</Link>
-            <Link className="text-emerald-700" href="/cart">Cart</Link>
-            <Link className="rounded-xl bg-stone-950 px-4 py-2 text-white transition hover:bg-stone-700" href="/dashboard">Account</Link>
-          </nav>
-        </div>
-      </header>
+      <MarketplaceHeader active="cart" />
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</section>
     </main>
   );
