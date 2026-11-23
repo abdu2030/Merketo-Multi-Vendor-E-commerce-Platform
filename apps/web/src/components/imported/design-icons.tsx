@@ -282,6 +282,16 @@ export function Eye(props: IconProps) {
   );
 }
 
+export function EyeOff(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="m3 3 18 18" />
+      <path d="M10.6 5.1 12 5c6 0 10 7 10 7a23 23 0 0 1-3.1 3.9M6.3 6.3A22 22 0 0 0 2 12s4 7 10 7a10 10 0 0 0 5.2-1.6" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </IconBase>
+  );
+}
+
 export function Trash2(props: IconProps) {
   return (
     <IconBase {...props}>

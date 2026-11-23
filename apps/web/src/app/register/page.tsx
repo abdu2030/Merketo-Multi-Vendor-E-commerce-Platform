@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
-import { ArrowRight, BadgeCheck } from "@/components/imported/design-icons";
+import { ArrowRight, BadgeCheck, Eye, EyeOff } from "@/components/imported/design-icons";
 import { ApiError } from "@/lib/api";
 import type { RegisterInput } from "@/lib/auth";
 
@@ -39,6 +39,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -247,18 +248,29 @@ export default function RegisterPage() {
                 <label htmlFor="new-password" className="text-sm font-bold text-stone-700">
                   Password
                 </label>
-                <input
-                  id="new-password"
-                  autoComplete="new-password"
-                  aria-describedby="password-feedback"
-                  aria-invalid={Boolean(passwordFeedback)}
-                  required
-                  className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-                  name="password"
-                  onChange={(event) => setPassword(event.target.value)}
-                  type="password"
-                  value={password}
-                />
+                <div className="relative">
+                  <input
+                    id="new-password"
+                    autoComplete="new-password"
+                    aria-describedby="password-feedback"
+                    aria-invalid={Boolean(passwordFeedback)}
+                    required
+                    className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 pl-4 pr-12 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 [&::-ms-reveal]:hidden"
+                    name="password"
+                    onChange={(event) => setPassword(event.target.value)}
+                    type={passwordVisible ? "text" : "password"}
+                    value={password}
+                  />
+                  <button
+                    type="button"
+                    aria-controls="new-password"
+                    aria-label={passwordVisible ? "Hide password" : "Show password"}
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-2xl text-stone-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-600"
+                    onClick={() => setPasswordVisible((visible) => !visible)}
+                  >
+                    {passwordVisible ? <EyeOff /> : <Eye />}
+                  </button>
+                </div>
                 <p
                   id="password-feedback"
                   aria-live="polite"
