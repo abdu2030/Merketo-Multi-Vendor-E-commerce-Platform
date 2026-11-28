@@ -73,6 +73,16 @@ export function validateEnv(config: EnvConfig) {
     throw new Error("RATE_LIMIT_MAX must be at least 1.");
   }
 
+  if (config.ADMIN_TOTP_SECRETS) {
+    let factors: unknown;
+    try { factors = JSON.parse(config.ADMIN_TOTP_SECRETS); } catch { factors = null; }
+    if (!factors || typeof factors !== "object" || Array.isArray(factors) ||
+        Object.entries(factors).some(([id, key]) => !id.trim() || typeof key !== "string" || !/^[A-Z2-7]{32}$/.test(key)) ||
+        new Set(Object.values(factors)).size !== Object.keys(factors).length) {
+      throw new Error("ADMIN_TOTP_SECRETS must map each administrator ID to a distinct 32-character Base32 key.");
+    }
+  }
+
   validateUrls(config);
   validateRedis(config, nodeEnv);
   validateGmail(config, gmailSmtpPort);

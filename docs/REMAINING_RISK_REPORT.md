@@ -6,7 +6,11 @@ Stage 19 review date: 2026-07-17
 
 No critical or high-severity automated security regression tests are currently failing. The remaining risks are operational controls that require provider-console verification, a moderate dependency advisory, and production-readiness improvements that are outside the current source-only audit boundary.
 
-## Remaining Risks
+## Day 13 patch follow-up · 28 November 2026
+
+The table below records the July baseline. The hardening branch adds administrator TOTP, a Redis-backed global request limit, browser journeys and dependency updates. Deployment verification and enrollment remain operator tasks. See [the rollout and local checks](DAY13_HARDENING.md).
+
+## Remaining Risks at the July review
 
 | Risk | Severity | Status | Recommended Action |
 | --- | --- | --- | --- |

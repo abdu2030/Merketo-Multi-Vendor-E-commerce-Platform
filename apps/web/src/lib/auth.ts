@@ -23,6 +23,7 @@ export type RegisterInput = {
 };
 
 export type LoginInput = {
+  otp?: string;
   email: string;
   password: string;
 };

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ConnectionOptions } from "bullmq";
+import { RedisOptions } from "ioredis";
 
 @Injectable()
 export class RedisConnectionFactory {
@@ -14,11 +14,11 @@ export class RedisConnectionFactory {
     return Boolean(this.redisUrl);
   }
 
-  createProducerConnection(): ConnectionOptions {
+  createProducerConnection(): RedisOptions {
     return this.createConnection(1, false);
   }
 
-  createWorkerConnection(): ConnectionOptions {
+  createWorkerConnection(): RedisOptions {
     return this.createConnection(null, true);
   }
 
@@ -49,7 +49,7 @@ export class RedisConnectionFactory {
       enableOfflineQueue,
       connectTimeout: 10_000,
       ...(useTls ? { tls: {} } : {})
-    } satisfies ConnectionOptions;
+    } satisfies RedisOptions;
   }
 }
 

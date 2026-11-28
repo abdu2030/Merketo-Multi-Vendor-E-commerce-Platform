@@ -91,6 +91,7 @@ model User {
   passwordHash        String
   role                Role                @default(BUYER)
   phone               String?
+  adminTotpLastStep   Int?
   emailVerifiedAt     DateTime?
   emailVerificationTokenHash      String?
   emailVerificationTokenExpiresAt DateTime?
@@ -124,6 +125,7 @@ model RefreshToken {
   familyId          String    @default(cuid())
   expiresAt         DateTime
   revokedAt         DateTime?
+  adminMfaBinding   String?
   replacedByTokenId String?   @unique
   lastUsedAt        DateTime?
   createdAt         DateTime  @default(now())

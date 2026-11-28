@@ -14,3 +14,5 @@ coverage
 *.tsbuildinfo
 uploads
 prisma/dev.db
+/test-results/
+/playwright-report/

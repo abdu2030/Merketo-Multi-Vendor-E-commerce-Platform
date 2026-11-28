@@ -62,3 +62,34 @@ jobs:
       - name: Confirm web image has no env files
         run: |
           docker run --rm --entrypoint sh marketo-web:ci -c 'if find /app -name ".env*" -print -quit | grep -q .; then find /app -name ".env*"; exit 1; fi'
+
+  marketplace-integration:
+    name: Marketplace browser and Redis checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: local_day13_fixture
+          POSTGRES_DB: marketotest
+        ports: ["15438:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["16387:6379"]
+    env:
+      DATABASE_URL: postgresql://postgres:local_day13_fixture@127.0.0.1:15438/marketotest
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:15131/api
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run prisma:deploy -w apps/api
+      - run: npm run build
+      - run: node --test tests/shared-limit.cjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser

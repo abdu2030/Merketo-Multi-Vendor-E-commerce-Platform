@@ -13,6 +13,8 @@ import { createRequestLoggingMiddleware, RESPONSE_REQUEST_ID_HEADER } from "./co
 import { createValidationException } from "./common/validation/validation-errors";
 import { createCorsOriginHandler, parseCsvList } from "./config/cors.config";
 
+import { SharedRateCounter } from "./common/middleware/shared-rate-counter";
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(), {
     bodyParser: false
@@ -45,6 +47,7 @@ async function bootstrap() {
   app.use(createRequestLoggingMiddleware());
   app.use(
     createRateLimitMiddleware({
+      shared: app.get(SharedRateCounter),
       windowMs: config.get<number>("RATE_LIMIT_WINDOW_MS") ?? 60_000,
       max: config.get<number>("RATE_LIMIT_MAX") ?? 120,
       skipPaths: parseCsvList(
@@ -78,7 +81,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   const port = Number(config.get<string>("PORT") ?? 5000);
-  await app.listen(port);
+  const host = config.get<string>("BIND_HOST");
+  if (host) await app.listen(port, host);
+  else await app.listen(port);
 }
 
 function captureRawBody(req: Request & { rawBody?: Buffer }, _res: Response, buffer: Buffer) {

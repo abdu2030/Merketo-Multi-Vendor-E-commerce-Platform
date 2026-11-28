@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsOptional, Matches, IsString, MaxLength, MinLength } from "class-validator";
 
 export class LoginDto {
   @IsEmail()
@@ -9,4 +9,8 @@ export class LoginDto {
   @MinLength(8)
   @MaxLength(128)
   password!: string;
+
+  @IsOptional()
+  @Matches(/^\d{6}$/)
+  otp?: string;
 }

@@ -13,9 +13,11 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [needsOtp, setNeedsOtp] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,9 +33,13 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signIn({ email: email.trim(), password });
+      await signIn({ email: email.trim(), password, ...(needsOtp && { otp }) });
       router.replace("/dashboard");
     } catch (caughtError) {
+      if (caughtError instanceof Error && caughtError.message === "An administrator authenticator code is required.") {
+        setNeedsOtp(true);
+        setOtp("");
+      }
       setError(
         caughtError instanceof Error ? caughtError.message : "Login failed.",
       );
@@ -122,7 +128,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   className="h-12 w-full min-w-0 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm text-stone-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                   name="email"
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => { setEmail(event.target.value); setNeedsOtp(false); setOtp(""); }}
                   placeholder="you@example.com"
                   type="email"
                   value={email}
@@ -144,6 +150,15 @@ export default function LoginPage() {
                 />
               </label>
 
+              {needsOtp && (
+                <label className="grid gap-2 text-sm font-bold text-stone-700">
+                  Authenticator code
+                  <input autoFocus autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}"
+                    maxLength={6} required value={otp} onChange={(event) => setOtp(event.target.value)}
+                    className="h-12 rounded-2xl border border-stone-200 px-4" />
+                </label>
+              )}
+
               {error ? (
                 <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                   {error}
@@ -152,7 +167,7 @@ export default function LoginPage() {
 
               <button
                 className="mt-2 flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
                 type="submit"
               >
                 {isSubmitting ? "Signing in..." : "Sign in"}

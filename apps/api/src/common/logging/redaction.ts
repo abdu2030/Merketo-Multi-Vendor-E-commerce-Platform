@@ -1,9 +1,9 @@
 const sensitiveKeyPattern =
-  /(password|passwordHash|accessToken|refreshToken|authorization|bearer|cookie|apiKey|api[_-]?key|secret|smtp|card|cvv|pan|privateKey|private[_-]?key)/i;
+  /(otp|mfaBinding|password|passwordHash|accessToken|refreshToken|authorization|bearer|cookie|apiKey|api[_-]?key|secret|smtp|card|cvv|pan|privateKey|private[_-]?key)/i;
 const bearerTokenPattern = /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi;
 const tokenLikePattern = /\b[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/g;
 const urlCredentialPattern = /(\b[a-z][a-z0-9+.-]*:\/\/)([^\s/@:]+):([^\s/@]+)@/gi;
-const sensitiveQueryPattern = /([?&](?:token|access_token|refresh_token|api_key|apikey|key|secret|password|signature)=)[^&\s]+/gi;
+const sensitiveQueryPattern = /([?&](?:otp|token|access_token|refresh_token|api_key|apikey|key|secret|password|signature)=)[^&\s]+/gi;
 
 export const REDACTED_VALUE = "[REDACTED]";
 

@@ -4,18 +4,22 @@ import { Role } from "@prisma/client";
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { AuthenticatedUser } from "../../common/types/authenticated-user";
 
+import { adminAuthenticator } from "./admin-mfa";
+
 type JwtHeader = {
   alg?: unknown;
   typ?: unknown;
 };
 
 type AccessTokenSubject = {
+  adminMfaBinding?: string;
   id: string;
   role: Role;
   sessionId: string;
 };
 
 type AccessTokenPayload = {
+  adminMfaBinding?: string;
   sub: string;
   sessionId: string;
   role: Role;
@@ -41,6 +45,7 @@ export class JwtTokenService {
     const expiresInSeconds = Number(this.config.get("JWT_ACCESS_TOKEN_TTL_SECONDS") ?? 900);
     const payload: AccessTokenPayload = {
       sub: user.id,
+      adminMfaBinding: user.adminMfaBinding,
       sessionId: user.sessionId,
       role: user.role,
       jti: randomUUID(),
@@ -67,6 +72,10 @@ export class JwtTokenService {
       throw new UnauthorizedException("Invalid authentication token.");
     }
 
+    if (payload.role === Role.ADMIN &&
+        (!payload.adminMfaBinding || adminAuthenticator(this.config, payload.sub)?.binding !== payload.adminMfaBinding)) {
+      throw new UnauthorizedException("Sign in with your administrator authenticator.");
+    }
     return {
       id: payload.sub,
       role: payload.role,

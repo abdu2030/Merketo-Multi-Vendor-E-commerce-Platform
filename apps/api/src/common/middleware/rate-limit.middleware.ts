@@ -1,11 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 
+import type { SharedRateCounter } from "./shared-rate-counter";
+
 type RateLimitEntry = {
   count: number;
   resetAt: number;
 };
 
 type RateLimitOptions = {
+  shared?: Pick<SharedRateCounter, "configured" | "increment">;
   windowMs: number;
   max: number;
   skipPaths?: string[];
@@ -22,7 +25,7 @@ export function createRateLimitMiddleware(options: RateLimitOptions) {
   const store = new Map<string, RateLimitEntry>();
   let requestCount = 0;
 
-  return (request: Request, response: Response, next: NextFunction) => {
+  return async (request: Request, response: Response, next: NextFunction) => {
     const route = normalizePath(request.originalUrl.split("?")[0] ?? request.path);
 
     if (skipPaths.has(route)) {
@@ -31,24 +34,24 @@ export function createRateLimitMiddleware(options: RateLimitOptions) {
     }
 
     const currentTime = now();
-    requestCount += 1;
-
-    if (requestCount % 250 === 0) {
-      pruneExpiredEntries(store, currentTime);
-    }
-
     const key = keyGenerator(request);
-    const existing = store.get(key);
-    const entry =
-      existing && existing.resetAt > currentTime
-        ? existing
-        : {
-            count: 0,
-            resetAt: currentTime + windowMs
-          };
-
-    entry.count += 1;
-    store.set(key, entry);
+    let entry: RateLimitEntry;
+    if (options.shared?.configured) {
+      try {
+        entry = await options.shared.increment(key, windowMs);
+      } catch {
+        response.setHeader("Retry-After", "2");
+        response.status(503).json({ success: false, message: "Request limiting is temporarily unavailable." });
+        return;
+      }
+    } else {
+      // Local development without Redis. Staging and production require REDIS_URL.
+      if (++requestCount % 250 === 0) pruneExpiredEntries(store, currentTime);
+      const existing = store.get(key);
+      entry = existing && existing.resetAt > currentTime ? existing : { count: 0, resetAt: currentTime + windowMs };
+      entry.count += 1;
+      store.set(key, entry);
+    }
     setRateLimitHeaders(response, max, entry, currentTime);
 
     if (entry.count > max) {

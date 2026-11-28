@@ -101,6 +101,23 @@ describe("AuthService", () => {
     };
   }
 
+  it("requires enrollment for an admin, including after password recovery", async () => {
+    const { service, prisma, jwt } = createService();
+    prisma.user.findUnique.mockResolvedValue(buildUser({ role: Role.ADMIN }));
+    await expect(service.login({ email: "admin@example.invalid", password: "ResetPass123", otp: "000000" })).rejects.toThrow(UnauthorizedException);
+    expect(jwt.signAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("rejects refresh after an administrator factor is replaced", async () => {
+    const { service, prisma } = createService();
+    prisma.refreshToken.findUnique.mockResolvedValue({
+      userId: "user_1", user: buildUser({ role: Role.ADMIN }), adminMfaBinding: "retired-factor",
+      expiresAt: new Date(Date.now() + 60000)
+    });
+    await expect(service.refresh("previous-refresh")).rejects.toThrow(UnauthorizedException);
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+  });
+
   it("registers a normalized buyer, stores only the password hash, and queues a welcome notification", async () => {
     const user = buildUser({ email: "buyer@example.com", fullName: "Buyer One" });
     const { service, prisma, password, jwt, notifications, emailQueue } = createService();
@@ -680,7 +697,7 @@ function buildUserShape() {
     fullName: "Buyer One",
     email: "buyer@example.com",
     passwordHash: "hashed_password",
-    role: Role.BUYER,
+    role: Role.BUYER as Role,
     phone: null,
     emailVerifiedAt: null,
     emailVerificationTokenHash: null,

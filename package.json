@@ -12,9 +12,11 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:browser": "playwright test",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,prisma}\""
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@eslint/js": "^9.39.4",
     "globals": "^16.5.0",
     "prettier": "^3.6.2",
@@ -25,6 +27,10 @@
   },
   "overrides": {
     "postcss": "8.5.33",
+    "@jest/reporters": { "glob": "14.0.6" },
+    "jest-config": { "glob": "14.0.6" },
+    "jest-runtime": { "glob": "14.0.6" },
+    "@nestjs/cli": { "glob": "14.0.6" },
     "@prisma/config@6.19.3": {
       "deepmerge-ts": "8.0.2",
       "effect": "3.22.5"

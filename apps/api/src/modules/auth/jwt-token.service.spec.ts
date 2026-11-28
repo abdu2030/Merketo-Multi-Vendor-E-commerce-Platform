@@ -2,6 +2,8 @@ import { UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Role } from "@prisma/client";
 import { createHmac } from "crypto";
+import { Secret } from "otpauth";
+import { adminAuthenticator } from "./admin-mfa";
 import { JwtTokenService } from "./jwt-token.service";
 
 describe("JwtTokenService", () => {
@@ -51,6 +53,31 @@ describe("JwtTokenService", () => {
       role: Role.BUYER,
       sessionId: "session_1"
     });
+  });
+
+  it("rejects legacy administrator access tokens and sessions bound to a retired factor", () => {
+    const service = createService();
+    for (const adminMfaBinding of [undefined, "retired-factor"]) {
+      const token = service.signAccessToken({ id: "user_1", sessionId: "session_1", role: Role.ADMIN, adminMfaBinding });
+      expect(() => service.verifyAccessToken(token)).toThrow(UnauthorizedException);
+    }
+  });
+
+  it("accepts the replacement authenticator and invalidates the old administrator access token", () => {
+    const values: Record<string, string> = { JWT_ACCESS_SECRET: secret };
+    const config = { get: (key: string) => values[key] } as ConfigService;
+    const service = new JwtTokenService(config);
+    const id = "admin-recovery";
+    const provision = () => {
+      values.ADMIN_TOTP_SECRETS = JSON.stringify({ [id]: new Secret({ size: 20 }).base32 });
+      const factor = adminAuthenticator(config, id)!;
+      return service.signAccessToken({ id, role: Role.ADMIN, sessionId: "session", adminMfaBinding: factor.binding });
+    };
+    const old = provision();
+    expect(service.verifyAccessToken(old).role).toBe(Role.ADMIN);
+    const replacement = provision();
+    expect(() => service.verifyAccessToken(old)).toThrow(UnauthorizedException);
+    expect(service.verifyAccessToken(replacement).role).toBe(Role.ADMIN);
   });
 
   it("rejects an expired token", () => {

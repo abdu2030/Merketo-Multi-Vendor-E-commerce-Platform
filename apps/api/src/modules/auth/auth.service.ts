@@ -21,6 +21,8 @@ import { JwtTokenService } from "./jwt-token.service";
 import { LoginRateLimitService } from "./login-rate-limit.service";
 import { PasswordService } from "./password.service";
 
+import { adminAuthenticator } from "./admin-mfa";
+
 type PublicUser = {
   id: string;
   fullName: string;
@@ -31,6 +33,7 @@ type PublicUser = {
 };
 
 type CreateSessionOptions = {
+  adminMfaBinding?: string;
   tokenStore?: Prisma.TransactionClient;
   refreshToken?: string;
   refreshTokenHash?: string;
@@ -118,8 +121,29 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password.");
     }
 
-    this.loginRateLimit.clear(email);
+    if (user.role === Role.ADMIN) {
+      const factor = adminAuthenticator(this.config, user.id);
+      const now = Date.now();
+      const delta = dto.otp && factor ? factor.totp.validate({ token: dto.otp, timestamp: now, window: 1 }) : null;
+      if (!factor || delta === null) {
+        if (dto.otp) this.loginRateLimit.recordFailedAttempt(email);
+        throw new UnauthorizedException("An administrator authenticator code is required.");
+      }
 
+      const step = Math.floor(now / 30_000) + delta;
+      const session = await this.prisma.$transaction(async (tx) => {
+        const claimed = await tx.user.updateMany({
+          where: { id: user.id, role: Role.ADMIN, passwordHash, OR: [{ adminTotpLastStep: null }, { adminTotpLastStep: { lt: step } }] },
+          data: { adminTotpLastStep: step }
+        });
+        if (claimed.count !== 1) throw new UnauthorizedException("Use the next authenticator code.");
+        return this.createSession(user, { tokenStore: tx, adminMfaBinding: factor.binding });
+      });
+      this.loginRateLimit.clear(email);
+      return session;
+    }
+
+    this.loginRateLimit.clear(email);
     return this.createSession(user);
   }
 
@@ -344,6 +368,12 @@ export class AuthService {
         throw new UnauthorizedException("Invalid refresh token.");
       }
 
+      const adminMfaBinding = storedToken.user.role === Role.ADMIN ? storedToken.adminMfaBinding : null;
+      if (storedToken.user.role === Role.ADMIN &&
+          (!adminMfaBinding || adminAuthenticator(this.config, storedToken.userId)?.binding !== adminMfaBinding)) {
+        throw new UnauthorizedException("Sign in with your administrator authenticator.");
+      }
+
       const rotation = await tx.refreshToken.updateMany({
         where: {
           id: storedToken.id,
@@ -373,6 +403,7 @@ export class AuthService {
 
       return this.createSession(storedToken.user, {
         tokenStore: tx,
+        adminMfaBinding: adminMfaBinding ?? undefined,
         refreshToken: nextRefreshToken,
         refreshTokenHash: nextRefreshTokenHash,
         refreshTokenId: nextTokenId,
@@ -404,7 +435,8 @@ export class AuthService {
     const accessToken = this.jwtTokenService.signAccessToken({
       id: user.id,
       role: user.role,
-      sessionId
+      sessionId,
+      adminMfaBinding: options.adminMfaBinding
     });
     const refreshToken = options.refreshToken ?? this.generateRefreshToken();
     const tokenStore = options.tokenStore ?? this.prisma;
@@ -414,6 +446,7 @@ export class AuthService {
       data: {
         id: sessionId,
         userId: user.id,
+        adminMfaBinding: options.adminMfaBinding,
         tokenHash: options.refreshTokenHash ?? this.hashRefreshToken(refreshToken),
         familyId: options.familyId ?? randomUUID(),
         expiresAt: new Date(Date.now() + refreshTokenTtlDays * 24 * 60 * 60 * 1000)
