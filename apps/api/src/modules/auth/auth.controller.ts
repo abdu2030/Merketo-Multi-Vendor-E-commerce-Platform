@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Request, Response } from "express";
+import { CookieOptions, Request, Response } from "express";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { AuthenticatedUser } from "../../common/types/authenticated-user";
@@ -119,13 +119,13 @@ export class AuthController {
 
   private setRefreshTokenCookie(response: Response, refreshToken: string) {
     response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-      ...this.getRefreshTokenCookieOptions(),
+      ...this.getRefreshTokenCookieOptions(response.req),
       maxAge: this.getRefreshTokenMaxAgeMs()
     });
   }
 
   private clearRefreshTokenCookie(response: Response) {
-    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.getRefreshTokenCookieOptions());
+    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.getRefreshTokenCookieOptions(response.req));
   }
 
   private getRefreshTokenCookie(request: Request) {
@@ -145,11 +145,14 @@ export class AuthController {
     return decodeURIComponent(refreshCookie.slice(REFRESH_TOKEN_COOKIE_NAME.length + 1));
   }
 
-  private getRefreshTokenCookieOptions() {
+  private getRefreshTokenCookieOptions(request: Request): CookieOptions {
+    const secure = this.isProductionLike();
+    const crossSite = secure && request.headers["sec-fetch-site"] === "cross-site";
     return {
       httpOnly: true,
-      sameSite: "lax" as const,
-      secure: this.isProductionLike(),
+      sameSite: crossSite ? "none" : "lax",
+      partitioned: crossSite,
+      secure,
       path: "/api/auth"
     };
   }

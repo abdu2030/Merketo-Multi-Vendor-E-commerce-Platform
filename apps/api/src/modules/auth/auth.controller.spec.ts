@@ -29,6 +29,7 @@ describe("AuthController refresh-session cookies", () => {
     } as unknown as ConfigService;
     const controller = new AuthController(authService, config);
     const response = {
+      req: buildRequest(),
       cookie: jest.fn(),
       clearCookie: jest.fn()
     } as unknown as Response;
@@ -44,6 +45,7 @@ describe("AuthController refresh-session cookies", () => {
     expect(response.cookie).toHaveBeenCalledWith("marketo_refresh_token", "refresh_token", {
       httpOnly: true,
       sameSite: "lax",
+      partitioned: false,
       secure: true,
       path: "/api/auth",
       maxAge: 30 * 24 * 60 * 60 * 1000
@@ -73,9 +75,25 @@ describe("AuthController refresh-session cookies", () => {
     expect(response.clearCookie).toHaveBeenCalledWith("marketo_refresh_token", {
       httpOnly: true,
       sameSite: "lax",
+      partitioned: false,
       secure: true,
       path: "/api/auth"
     });
+  });
+
+  it("issues, rotates and clears the same partitioned cookie for a cross-site storefront", async () => {
+    const { controller, response } = createController();
+    response.req.headers["sec-fetch-site"] = "cross-site";
+    const options = expect.objectContaining({
+      secure: true, httpOnly: true, sameSite: "none", partitioned: true, path: "/api/auth"
+    });
+    await controller.login({ email: "buyer@example.com", password: "StrongPass123" }, response);
+    expect(response.cookie).toHaveBeenCalledWith("marketo_refresh_token", "refresh_token", options);
+    const request = buildRequest("marketo_refresh_token=refresh_token");
+    await controller.refresh({}, request, response);
+    expect(response.cookie).toHaveBeenCalledWith("marketo_refresh_token", "rotated_refresh_token", options);
+    await controller.logout({}, request, response);
+    expect(response.clearCookie).toHaveBeenCalledWith("marketo_refresh_token", options);
   });
 
   it("revokes all sessions and clears the refresh cookie during logout-all", async () => {
